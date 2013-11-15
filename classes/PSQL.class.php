@@ -2,120 +2,135 @@
 /**
  * @author Dylan Vorster <dylan@eezipay.com>
  * @author Rory van Heerden <rory@eishgaming.co.za>
-*/
-
+ */
 class PSQL {
-    /*
-     * Connection Infomation
-     */
-    private static $DBHost = null;
-    private static $DBUser = null;
-    private static $DBPass = null;
-    private static $DBName = null;
-    
-    /*
-     * Instances
-     */
-    public static $sqlres = null;
-    public static $result = null;
-    public static $queries = null;
 
-    /**
-     * Configuration methods
-     */
-    public static function readConfig($database = null) {
-        if ((!is_null(static::$DBHost) || !is_null(static::$DBUser) || !is_null(static::$DBPass) || !is_null(static::$DBName)) && $database == static::$DBName) {
-            return false;
-        }
+	//connection info
+	private static $DBHost = NULL;
+	private static $DBUser = NULL;
+	private static $DBPass = NULL;
+	private static $DBName = NULL;
+	private static $DBPort = NULL;
+	//instances
+	public static $sqlres = NULL;
+	public static $result = NULL;
+	public static $queries = NULL;
 
-        $config = PSQLConfiguration::getDatabaseConfig($database);
-        
-        static::$DBHost = $config->getOptional("host", "localhost");
-        static::$DBUser = $config->getOptional("user", "root");
-        static::$DBPass = $config->getOptional("pass", "");
-        static::$DBName = $config->getOptional("database", null);
-        return true;
-    }
+	/**
+	 * Configuration methods
+	 */
+	public static function readConfig($database = NULL) {
 
-    /**
-      Internal dont use it (most cases)
-     */
-    public static function connect($database = null) {
-        static::readConfig($database);
-        if (is_null(static::$sqlres)) {
-            static::$sqlres = array();
-        }
+		if ((!is_null(self::$DBHost) ||
+				!is_null(self::$DBUser) ||
+				!is_null(self::$DBPass) ||
+				!is_null(self::$DBName)) &&
+				$database == self::$DBName) {
+			return false;
+		}
 
-        if (!isset(static::$sqlres[static::$DBName])) {
-            static::$sqlres[static::$DBName] = new \PDO('mysql:host=' . static::$DBHost . ';dbname=' . static::$DBName, static::$DBUser, static::$DBPass);
-            static::$sqlres[static::$DBName]->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        }
-    }
+		$config = PSQLConfiguration::getDatabaseConfig($database);
+		self::$DBHost = $config->getHost();
+		self::$DBUser = $config->getUser();
+		self::$DBPass = $config->getPass();
+		self::$DBName = $config->getDB();
+		self::$DBPort = $config->getPort();
+		return true;
+	}
 
-    /**
-      Internal dont use it (most cases)
-     */
-    public static function prepare($sql, $database = null) {
-        static::connect($database);
-        //if the queries are null, add them
-        if (is_null(static::$queries)) {
-            static::$queries = array();
-        }
+	/**
+	  Internal dont use it (most cases)
+	 */
+	public static function connect($database = NULL) {
+		self::readConfig($database);
+		if (is_null(static::$sqlres)) {
+			self::$sqlres = array();
+		}
 
-        //if the db is not found added it
-        if (!isset(static::$queries[static::$DBName])) {
-            static::$queries[static::$DBName] = array();
-        }
+		if (!isset(static::$sqlres[static::$DBName])) {
+			self::$sqlres[self::$DBName] = new \PDO('mysql:host=' . self::$DBHost . ';dbname=' . self::$DBName, static::$DBUser, self::$DBPass);
+			self::$sqlres[self::$DBName]->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+		}
+	}
 
-        //if the queries are null, add them
-        foreach (static::$queries[static::$DBName] AS $query) {
-            if ($query['query'] == $sql) {
-                return $query['statement'];
-            }
-        }
+	/**
+	 * 
+	 * @param type $sql
+	 * @param type $database
+	 * @return \PDOStatement
+	 */
+	public static function prepare($sql, $database = null) {
+		static::connect($database);
+		//if the queries are null, add them
+		if (is_null(static::$queries)) {
+			static::$queries = array();
+		}
 
-        $stmt = static::$sqlres[static::$DBName]->prepare($sql);
-        static::$queries[static::$DBName][] = array('query' => $sql, 'statement' => $stmt);
-        return $stmt;
-    }
+		//if the db is not found add it
+		if (!isset(static::$queries[static::$DBName])) {
+			static::$queries[static::$DBName] = array();
+		}
 
-    /**
-     * Use this function to insert data into a table
-     * @param sql - the SQL Query with '?' for placeholders
-     * @param db - the database
-     * @param vars - the variables in an array format
-     */
-    public static function insert($sql, $vars = array(), $database = null) {
-        $stmt = static::prepare($sql, $database);
-        if (!is_array($vars)) {
-            die("VARS must be an array");
-        }
-        $length = count($vars);
-        for ($i = 1; $i <= $length; $i++) {
-            $stmt->bindParam($i, $vars[$i - 1]);
-        }
-        $stmt->execute();
-        return static::$sqlres[static::$DBName]->lastInsertId();
-    }
+		//if the queries are null, add them
+		foreach (static::$queries[static::$DBName] AS $query) {
+			if ($query['query'] == $sql) {
+				return $query['statement'];
+			}
+		}
 
-    /**
-     * Use this function to execute a prepared statement
-     * @param sql - the SQL Query with '?' for placeholders
-     * @param db - the database
-     * @param vars - the variables in an array format
-     */
-    public static function query($sql, $vars = array(), $database = null) {
-        $stmt = static::prepare($sql, $database);
-        if (!is_array($vars)) {
-            die("VARS must be an array");
-        }
-        $length = count($vars);
-        for ($i = 1; $i <= $length; $i++) {
-            $stmt->bindParam($i, $vars[$i - 1]);
-        }
-        $stmt->execute();
-        return $stmt;
-    }
+		$stmt = static::$sqlres[static::$DBName]->prepare($sql);
+		static::$queries[static::$DBName][] = array('query' => $sql, 'statement' => $stmt);
+		return $stmt;
+	}
+
+	/**
+	 * Use this function to insert data into a table
+	 * @param sql - the SQL Query with '?' for placeholders
+	 * @param db - the database
+	 * @param vars - the variables in an array format
+	 */
+	public static function insert($sql, $title, $vars = array()) {
+		$stmt = static::prepare($sql, $title);
+		if (!is_array($vars)) {
+			throw new Exception("vars needs to be an array in PSQL");
+		}
+		foreach ($vars as $key => $var) {
+			if (is_string($key)) {
+				$stmt->bindParam($key, $var);
+			} else {
+				echo ($key + 1) . ' => ' . $var . '<br>';
+				$stmt->bindValue($key + 1, $var);
+			}
+		}
+		$stmt->execute();
+		return static::$sqlres[static::$DBName]->lastInsertId();
+	}
+
+	/**
+	 * Use this function to execute a prepared statement
+	 * @param sql - the SQL Query with '?' for placeholders
+	 * @param db - the database
+	 * @param vars - the variables in an array format
+	 * @return \PDOStatement "the results"
+	 */
+	public static function query($sql, $title, $vars = array()) {
+		$stmt = static::prepare($sql, $title);
+		if (!is_array($vars)) {
+			throw new Exception("vars needs to be an array in PSQL");
+		}
+
+		foreach ($vars as $key => $var) {
+			if (is_string($key)) {
+				$stmt->bindParam($key, $var);
+			} else {
+				echo ($key + 1) . ' => ' . $var . '<br>';
+				$stmt->bindValue($key + 1, $var);
+			}
+		}
+		$stmt->execute();
+		return $stmt;
+	}
 
 }
+
 ?>

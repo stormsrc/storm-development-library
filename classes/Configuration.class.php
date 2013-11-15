@@ -77,6 +77,7 @@ class Configuration {
      */
     public static function fetchConfigurations($name) {
         if (!isset(self::$configurationInstances[$name])) {
+			die(print_r(self::$configurationInstances));
             throw new \Exception("Error: No configuration exists for {$name}");
         }
         return self::$configurationInstances[$name];
