@@ -98,7 +98,6 @@ class PSQL {
 			if (is_string($key)) {
 				$stmt->bindParam($key, $var);
 			} else {
-				echo ($key + 1) . ' => ' . $var . '<br>';
 				$stmt->bindValue($key + 1, $var);
 			}
 		}
@@ -123,7 +122,6 @@ class PSQL {
 			if (is_string($key)) {
 				$stmt->bindParam($key, $var);
 			} else {
-				echo ($key + 1) . ' => ' . $var . '<br>';
 				$stmt->bindValue($key + 1, $var);
 			}
 		}
