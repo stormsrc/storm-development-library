@@ -31,7 +31,7 @@ class PSQLConfiguration extends Configuration {
 		}
 	}
 
-	public function setup($host, $port, $user, $pass, $db) {
+	public function setup($host, $port, $user, $pass, $db = NULL) {
 		$this->set('user', $user);
 		$this->set('pass', $pass);
 		$this->set('host', $host);
@@ -56,7 +56,7 @@ class PSQLConfiguration extends Configuration {
 	}
 
 	public function getDB() {
-		return $this->get('db');
+		return $this->getOptional('db', NULL);
 	}
 
 }

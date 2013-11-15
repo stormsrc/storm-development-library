@@ -47,9 +47,9 @@ class PSQL {
 			self::$sqlres = array();
 		}
 
-		if (!isset(static::$sqlres[static::$DBName])) {
-			self::$sqlres[self::$DBName] = new \PDO('mysql:host=' . self::$DBHost . ';dbname=' . self::$DBName, static::$DBUser, self::$DBPass);
-			self::$sqlres[self::$DBName]->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+		if (!isset(static::$sqlres[$database])) {
+			self::$sqlres[$database] = new \PDO('mysql:host=' . self::$DBHost . ';dbname=' . $database, static::$DBUser, self::$DBPass);
+			self::$sqlres[$database]->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 		}
 	}
 
@@ -67,19 +67,19 @@ class PSQL {
 		}
 
 		//if the db is not found add it
-		if (!isset(static::$queries[static::$DBName])) {
-			static::$queries[static::$DBName] = array();
+		if (!isset(static::$queries[$database])) {
+			static::$queries[$database] = array();
 		}
 
 		//if the queries are null, add them
-		foreach (static::$queries[static::$DBName] AS $query) {
+		foreach (static::$queries[$database] AS $query) {
 			if ($query['query'] == $sql) {
 				return $query['statement'];
 			}
 		}
 
-		$stmt = static::$sqlres[static::$DBName]->prepare($sql);
-		static::$queries[static::$DBName][] = array('query' => $sql, 'statement' => $stmt);
+		$stmt = static::$sqlres[$database]->prepare($sql);
+		static::$queries[$database][] = array('query' => $sql, 'statement' => $stmt);
 		return $stmt;
 	}
 
@@ -102,7 +102,7 @@ class PSQL {
 			}
 		}
 		$stmt->execute();
-		return static::$sqlres[static::$DBName]->lastInsertId();
+		return static::$sqlres[$title]->lastInsertId();
 	}
 
 	/**
