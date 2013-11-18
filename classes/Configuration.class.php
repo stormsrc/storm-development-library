@@ -13,7 +13,8 @@ class Configuration {
     protected $values;
 
     public function __construct($name = null) {
-        if (is_null($name)) {
+		if (is_null($name)) {
+			
             $name = $this->extractClassName(get_class($this));
         }
         self::addConfiguration($name, $this);
@@ -77,7 +78,6 @@ class Configuration {
      */
     public static function fetchConfigurations($name) {
         if (!isset(self::$configurationInstances[$name])) {
-			die(print_r(self::$configurationInstances));
             throw new \Exception("Error: No configuration exists for {$name}");
         }
         return self::$configurationInstances[$name];

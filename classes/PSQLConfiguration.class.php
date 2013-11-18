@@ -12,7 +12,9 @@ class PSQLConfiguration extends Configuration {
 	 * @return \storm\PSQLConfiguration
 	 */
 	public static function getDatabaseConfig($database) {
+		
 		$configs = static::fetchConfigurations(static::extractClassName(__CLASS__));
+	
 		foreach ($configs as $config) {
 			if ($config->getOptional("db", null) == $database) {
 				return $config;

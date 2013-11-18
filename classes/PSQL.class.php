@@ -15,12 +15,15 @@ class PSQL {
 	public static $sqlres = NULL;
 	public static $result = NULL;
 	public static $queries = NULL;
+	public static $readConfig = true;
 
 	/**
 	 * Configuration methods
 	 */
 	public static function readConfig($database = NULL) {
-
+		if(!self::$readConfig){
+			return false;
+		}
 		if ((!is_null(self::$DBHost) ||
 				!is_null(self::$DBUser) ||
 				!is_null(self::$DBPass) ||
@@ -36,6 +39,15 @@ class PSQL {
 		self::$DBName = $config->getDB();
 		self::$DBPort = $config->getPort();
 		return true;
+	}
+	
+	public static function setConnectionDetails(PSQLConfiguration $config){
+		self::$readConfig = false;
+		self::$DBHost = $config->getHost();
+		self::$DBUser = $config->getUser();
+		self::$DBPass = $config->getPass();
+		self::$DBName = $config->getDB();
+		self::$DBPort = $config->getPort();
 	}
 
 	/**
