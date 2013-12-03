@@ -87,15 +87,14 @@ class PSQL {
 		}
 
 		//if the queries are null, add them
-		foreach (static::$queries[$name] AS $query) {
-			if ($query['query'] == $sql) {
-                            if (self::$debug) echo "==>Preparing old query\n";
-                            return $query['statement'];
-			}
-		}
+                if(isset(static::$queries[$name][$sql])) {
+                    if (self::$debug) echo "==>Preparing old query\n";
+                    return static::$queries[$name][$sql];
+                }
+                
                 if (self::$debug) echo "==>Preparing new query\n";
 		$stmt = static::$sqlres[$name]->prepare($sql);
-		static::$queries[$name][] = array('query' => $sql, 'statement' => $stmt);
+		static::$queries[$name][$sql] = $stmt;
 		return $stmt;
 	}
 
