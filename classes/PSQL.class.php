@@ -5,106 +5,111 @@
  */
 class PSQL {
 
-	//connection info
-	private static $DBHost = NULL;
-	private static $DBUser = NULL;
-	private static $DBPass = NULL;
-	private static $DBName = NULL;
-	private static $DBPort = NULL;
+	// configuration
+    /**
+     *
+     * @var \storm\PSQLConfiguration
+     */
+        private static $config = NULL;
+        private static $debug = false;
+        
 	//instances
 	public static $sqlres = NULL;
 	public static $result = NULL;
 	public static $queries = NULL;
-	public static $readConfig = true;
+        public static $defaultDatabase = NULL;
 
 	/**
 	 * Configuration methods
 	 */
-	public static function readConfig($database = NULL) {
-		if(!self::$readConfig){
-			return false;
-		}
-		if ((!is_null(self::$DBHost) ||
-				!is_null(self::$DBUser) ||
-				!is_null(self::$DBPass) ||
-				!is_null(self::$DBName)) &&
-				$database == self::$DBName) {
-			return false;
-		}
-
-		$config = PSQLConfiguration::getDatabaseConfig($database);
-		self::$DBHost = $config->getHost();
-		self::$DBUser = $config->getUser();
-		self::$DBPass = $config->getPass();
-		self::$DBName = $config->getDB();
-		self::$DBPort = $config->getPort();
+        private static function fetchDefault($name) {
+            return (is_null($name)?self::$defaultDatabase:$name);
+        }
+        
+	public static function readConfig($name = NULL) {
+            if (self::$debug) echo "=>".__METHOD__."\n"; 
+                $name = self::fetchDefault($name);
+		if (!is_null($name) && !is_null(self::$defaultDatabase) && $name == self::$defaultDatabase) {
+                    return false;
+                }
+                $config = PSQLConfiguration::getDatabaseConfig($name);
+                
+                if (is_null($name)) {
+                    // Discover default database
+                    self::$defaultDatabase = $config->getName();
+                }
+                
+		self::setConnectionDetails($config);
 		return true;
 	}
 	
 	public static function setConnectionDetails(PSQLConfiguration $config){
-		self::$readConfig = false;
-		self::$DBHost = $config->getHost();
-		self::$DBUser = $config->getUser();
-		self::$DBPass = $config->getPass();
-		self::$DBName = $config->getDB();
-		self::$DBPort = $config->getPort();
+            if (self::$debug) echo "=>".__METHOD__."\n";     
+            self::$config = $config; 
 	}
 
 	/**
 	  Internal dont use it (most cases)
 	 */
-	public static function connect($database = NULL) {
-		self::readConfig($database);
-		if (is_null(static::$sqlres)) {
-			self::$sqlres = array();
-		}
+	public static function connect($name = NULL) {
+            if (self::$debug) echo "=>".__METHOD__."\n"; 
+            $name = self::fetchDefault($name);
+            if (is_null(static::$sqlres)) {
+		self::$sqlres = array();
+            }
 
-		if (!isset(static::$sqlres[$database])) {
-			self::$sqlres[$database] = new \PDO('mysql:host=' . self::$DBHost . ';dbname=' . $database, static::$DBUser, self::$DBPass);
-			self::$sqlres[$database]->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-		}
+            if (!isset(static::$sqlres[$name])) {
+                self::readConfig($name);
+                if (self::$debug) echo "==>Adding new PDO object\n";
+                self::$sqlres[$name] = new \PDO('mysql:host=' . self::$config->getHost() . ';dbname=' . self::$config->getDB(), self::$config->getUser(), self::$config->getPass());
+                self::$sqlres[$name]->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            }
 	}
 
 	/**
 	 * 
-	 * @param type $sql
-	 * @param type $database
+	 * @param string $sql
+	 * @param string $name
 	 * @return \PDOStatement
 	 */
-	public static function prepare($sql, $database = null) {
-		static::connect($database);
+	public static function prepare($sql, $name = null) {
+            if (self::$debug) echo "=>".__METHOD__."\n"; 
+            $name = self::fetchDefault($name);
+            static::connect($name);
 		//if the queries are null, add them
 		if (is_null(static::$queries)) {
 			static::$queries = array();
 		}
 
 		//if the db is not found add it
-		if (!isset(static::$queries[$database])) {
-			static::$queries[$database] = array();
+		if (!isset(static::$queries[$name])) {
+			static::$queries[$name] = array();
 		}
 
 		//if the queries are null, add them
-		foreach (static::$queries[$database] AS $query) {
+		foreach (static::$queries[$name] AS $query) {
 			if ($query['query'] == $sql) {
-				return $query['statement'];
+                            if (self::$debug) echo "==>Preparing old query\n";
+                            return $query['statement'];
 			}
 		}
-
-		$stmt = static::$sqlres[$database]->prepare($sql);
-		static::$queries[$database][] = array('query' => $sql, 'statement' => $stmt);
+                if (self::$debug) echo "==>Preparing new query\n";
+		$stmt = static::$sqlres[$name]->prepare($sql);
+		static::$queries[$name][] = array('query' => $sql, 'statement' => $stmt);
 		return $stmt;
 	}
 
 	/**
 	 * Use this function to insert data into a table
-	 * @param sql - the SQL Query with '?' for placeholders
-	 * @param db - the database
-	 * @param vars - the variables in an array format
+	 * @param string $sql - the SQL Query with '?' for placeholders
+	 * @param string $name - the database config name
+	 * @param array $vars - the variables in an array format
 	 */
-	public static function insert($sql, $title, $vars = array()) {
-		$stmt = static::prepare($sql, $title);
+	public static function insert($sql, $name, $vars = array()) {
+            if (self::$debug) echo "=>".__METHOD__."\n"; 
+            $stmt = static::prepare($sql, $name);
 		if (!is_array($vars)) {
-			throw new Exception("vars needs to be an array in PSQL");
+			throw new \Exception("vars needs to be an array in PSQL");
 		}
 		foreach ($vars as $key => $var) {
 			if (is_string($key)) {
@@ -114,20 +119,21 @@ class PSQL {
 			}
 		}
 		$stmt->execute();
-		return static::$sqlres[$title]->lastInsertId();
+		return static::$sqlres[$name]->lastInsertId();
 	}
 
 	/**
 	 * Use this function to execute a prepared statement
-	 * @param sql - the SQL Query with '?' for placeholders
-	 * @param db - the database
-	 * @param vars - the variables in an array format
+	 * @param string $sql - the SQL Query with '?' for placeholders
+	 * @param string $name - the database config name
+	 * @param array $vars - the variables in an array format
 	 * @return \PDOStatement "the results"
 	 */
-	public static function query($sql, $title, $vars = array()) {
-		$stmt = static::prepare($sql, $title);
+	public static function query($sql, $name, $vars = array()) {
+		if (self::$debug) echo "=>".__METHOD__."\n"; 
+                $stmt = static::prepare($sql, $name);
 		if (!is_array($vars)) {
-			throw new Exception("vars needs to be an array in PSQL");
+			throw new \Exception("vars needs to be an array in PSQL");
 		}
 
 		foreach ($vars as $key => $var) {
@@ -140,7 +146,11 @@ class PSQL {
 		$stmt->execute();
 		return $stmt;
 	}
-
+        
+        
+        public static function debugMode($setting) {
+            self::$debug = ($setting == true);
+        }
 }
 
 ?>
