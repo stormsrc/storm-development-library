@@ -54,11 +54,11 @@ class Configuration {
      */
     public static function setValue($configuration, $name, $value) {
         try {
-            self::fetchFirstConfiguration($configuration);
+            $config = self::fetchFirstConfiguration($configuration);
         } catch (\Exception $ex) {
             $config = new static($configuration);
-            $config->set($name, $value);
         }
+        $config->set($name, $value);
     }
     /**
      * Storage
