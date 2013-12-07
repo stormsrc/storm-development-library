@@ -1,4 +1,6 @@
-<?php namespace storm;
+<?php
+
+namespace storm;
 
 /**
  * @author Dylan Vorster <dylan@eezipay.com>
@@ -13,25 +15,25 @@ class PSQLConfiguration extends Configuration {
 	 */
 	public static function getDatabaseConfig($name) {
 		if (!is_null($name)) {
-                    $configs = static::fetchConfigurations(static::extractClassName(__CLASS__));
+			$configs = static::fetchConfigurations(static::extractClassName(__CLASS__));
 
-                    foreach ($configs as $config) {
-                        if (!$config instanceof PSQLConfiguration) {
-                            continue;
-                        }
-                            if ($config->getName() == $name) {
-                                    return $config;
-                            }
-                    }
-                }
+			foreach ($configs as $config) {
+				if (!$config instanceof PSQLConfiguration) {
+					continue;
+				}
+				if ($config->getName() == $name) {
+					return $config;
+				}
+			}
+		}
 		return self::fetchFirstConfiguration(static::extractClassName(__CLASS__));
 	}
 
-	public function __construct($host = NULL, $port = NULL, $user = NULL, $pass = NULL, $db = NULL,$name = NULL) {	
+	public function __construct($host = NULL, $port = NULL, $user = NULL, $pass = NULL, $db = NULL, $name = NULL) {
 		//standard invoke
 		if (is_null($port) && is_null($user) && is_null($pass) && is_null($db) && is_null($name)) {
 			parent::__construct($host);
-		}else{
+		} else {
 			parent::__construct();
 			$this->setup($host, $port, $user, $pass, $db, $name);
 		}
@@ -43,7 +45,7 @@ class PSQLConfiguration extends Configuration {
 		$this->set('host', $host);
 		$this->set('port', $port);
 		$this->set('db', $db);
-                $this->set('name', (is_null($name)?$db:$name));
+		$this->set('name', (is_null($name) ? $db : $name));
 	}
 
 	public function getUser() {
@@ -63,11 +65,11 @@ class PSQLConfiguration extends Configuration {
 	}
 
 	public function getDB() {
-		return $this->get('db');
+		return $this->getOptional('db',NULL);
 	}
-        
-        public function getName() {
-            return $this->getOptional('name', $this->getDB());
-        }
+
+	public function getName() {
+		return $this->getOptional('name', $this->getDB());
+	}
 
 }
