@@ -124,9 +124,11 @@ class PSQL {
 		if (!is_array($vars)) {
 			throw new \Exception("vars needs to be an array in PSQL");
 		}
-		foreach ($vars as $key => $var) {
+		
+		foreach ($vars as $key => &$var) {
 			if (is_string($key)) {
 				$stmt->bindParam($key, $var);
+				
 			} else {
 				$stmt->bindValue($key + 1, $var);
 			}
@@ -151,7 +153,7 @@ class PSQL {
 			throw new \Exception("vars needs to be an array in PSQL");
 		}
 
-		foreach ($vars as $key => $var) {
+		foreach ($vars as $key => &$var) {
 			if (is_string($key)) {
 				$stmt->bindParam($key, $var);
 			} else {
