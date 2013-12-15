@@ -68,7 +68,9 @@ echo "Running PSQL query CREATE TABLE IF NOT EXISTS `test` with readwrite_user\n
 PSQL::query("
     CREATE TABLE IF NOT EXISTS `test` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-    `info` int(11) NOT NULL,
+    `info` int(11),
+    `string` VARCHAR(255) NOT NULL,
+    `bool` tinyint(1) NOT NULL,
     PRIMARY KEY (`id`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 ", "readwrite_user");
@@ -83,8 +85,9 @@ do {
             print_r($r1);
         }
 
-        echo "Running PSQL query INSERT INTO `test`(`info`) VALUES(?) with {$connection}\n";
-        $newID = PSQL::insert("INSERT INTO `test`(`info`) VALUES(?)", $connection, array(rand(100,999).": Some test info"));
+        echo "Running PSQL query INSERT INTO `test`(`info`, `string`, `bool`) VALUES(?, ?, ?) with {$connection}\n";
+        $newID = PSQL::insert("INSERT INTO `test`(`info`, `string`, `bool`) VALUES(?, ?, ?)", $connection,
+                array(rand(100,999), "No bindvars test with true bool", true));
 
         echo "Running PSQL query SELECT * FROM `test` WHERE `id` = ? with {$connection}\n";
         $q1 = PSQL::query("SELECT * FROM `test` WHERE `id` = ?", $connection, array($newID));
@@ -98,12 +101,50 @@ do {
             print_r($r1);
         }
 
-
+        echo "Running PSQL query INSERT INTO `test`(`info`, `string`, `bool`) VALUES(:intvalue, :stringvalue, :boolvalue) with {$connection}\n";
+        $newID = PSQL::insert("INSERT INTO `test`(`info`, `string`, `bool`) VALUES(:intvalue, :stringvalue, :boolvalue)", $connection,
+                array(
+                    ":intvalue" => null,
+                    ":stringvalue" => "With bindvars test with false bool",
+                    ":boolvalue" => false)
+                );
+        
+        echo "Running PSQL query INSERT INTO `test`(`info`, `string`, `bool`) VALUES(:intvalue, :stringvalue, :boolvalue) with {$connection}\n";
+        $newID = PSQL::insert("INSERT INTO `test`(`info`, `string`, `bool`) VALUES(:intvalue, :stringvalue, :boolvalue)", $connection,
+                array(
+                    ":intvalue" => null,
+                    ":stringvalue" => "With bindvars test with true bool",
+                    ":boolvalue" => true)
+                );
     } catch (\Exception $ex) {
         echo $ex->getMessage();
         echo "\n";
     }
     $i++;
 } while ($i<3);
+
+try {
+    echo "Selecting all the nulls \n";
+    $null = null;
+    $nulls = PSQL::query("SELECT * FROM `test` WHERE `info` = :nullvalue", $connection, array(":nullvalue" => $null));
+    while ($r1 = $nulls -> fetch()) {
+        print_r($r1);
+    }
+    
+    echo "Selecting all the trues \n";
+    $trues = PSQL::query("SELECT * FROM `test` WHERE `bool` = :truevalue", $connection, array(":truevalue" => true));
+    while ($r1 = $trues -> fetch()) {
+        print_r($r1);
+    }
+    
+    echo "Selecting all the falses \n";
+    $falses = PSQL::query("SELECT * FROM `test` WHERE `bool` = :falsevalue", $connection, array(":falsevalue" => false));
+    while ($r1 = $falses -> fetch()) {
+        print_r($r1);
+    }
+} catch (\Exception $ex) {
+        echo $ex->getMessage();
+        echo "\n";
+    }
 
 echo '</pre>';
