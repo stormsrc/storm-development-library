@@ -109,8 +109,36 @@ class PSQL {
 		static::$queries[$name][$sql] = $stmt;
 		return $stmt;
 	}
+        
+        /**
+         * 
+         * @param \PDOStatement $stmt
+         * @param type $vars
+         */
+        protected static function bindVars(\PDOStatement &$stmt, $vars) {
+            if (!is_array($vars)) {
+                throw new \Exception("vars needs to be an array in PSQL");
+            }
+            foreach ($vars as $key => &$var) {
+		if (is_string($key)) {
+                    if (is_numeric($var)) {
+                        $type = \PDO::PARAM_INT;
+                    } else if (is_bool($var)) {
+                        $type = \PDO::PARAM_BOOL;
+                    } else if (is_null($var)) {
+                        $type = \PDO::PARAM_NULL;
+                        $var = "".$var;
+                    } else {
+                        $type = \PDO::PARAM_STR;
+                    }
+                    $stmt->bindParam($key, $var, $type);
+		} else {
+                    $stmt->bindValue($key + 1, $var);
+		}
+            }
+        }
 
-	/**
+        /**
 	 * Use this function to insert data into a table
 	 * @param string $sql - the SQL Query with '?' for placeholders
 	 * @param string $name - the database config name
@@ -120,19 +148,9 @@ class PSQL {
 		if (self::$debug){
 			echo "=>" . __METHOD__ . "\n";
 		}
-		$stmt = static::prepare($sql, $name);
-		if (!is_array($vars)) {
-			throw new \Exception("vars needs to be an array in PSQL");
-		}
-		
-		foreach ($vars as $key => &$var) {
-			if (is_string($key)) {
-				$stmt->bindParam($key, $var);
-				
-			} else {
-				$stmt->bindValue($key + 1, $var);
-			}
-		}
+		$stmt = static::prepare($sql, $name, $vars);
+		static::bindVars($stmt, $vars);
+                
 		$stmt->execute();
 		return static::$sqlres[$name]->lastInsertId();
 	}
@@ -148,18 +166,9 @@ class PSQL {
 		if (self::$debug){
 			echo "=>" . __METHOD__ . "\n";
 		}
-		$stmt = static::prepare($sql, $name);
-		if (!is_array($vars)) {
-			throw new \Exception("vars needs to be an array in PSQL");
-		}
-
-		foreach ($vars as $key => &$var) {
-			if (is_string($key)) {
-				$stmt->bindParam($key, $var);
-			} else {
-				$stmt->bindValue($key + 1, $var);
-			}
-		}
+		$stmt = static::prepare($sql, $name, $vars);
+		static::bindVars($stmt, $vars);
+                
 		$stmt->execute();
 		return $stmt;
 	}
