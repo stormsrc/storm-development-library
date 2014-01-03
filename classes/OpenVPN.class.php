@@ -1,6 +1,6 @@
 <?php namespace storm;
 /**
- * @author Rory van Heerden
+ * @author bagf
  */
 class OpenVPN{
 
@@ -76,7 +76,7 @@ class OpenVPN{
 				}
 			}
 			clearstatcache();
-			$keys = new DirectoryIterator(self::KeyDir);
+			$keys = new \DirectoryIterator(self::KeyDir);
 			foreach ($keys as $k) {
 				if ($k->isDot() || $k->isDir()) continue;
 				$e = explode(".", $k->getFilename());
