@@ -1,6 +1,6 @@
 <?php namespace storm;
 /**
- * @author Rory van Heerden
+ * @author bagf
  */
 class OpenVPNClient{
 	const ONLINE = 1;
