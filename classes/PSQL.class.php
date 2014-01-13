@@ -69,7 +69,7 @@ class PSQL {
 		if (!isset(static::$sqlres[$name])) {
 			self::readConfig($name);
 
-			self::$sqlres[$name] = new \PDO('mysql:host=' . self::$config->getHost() . ';dbname=' . (self::$config->getDB() == NULL?$name:self::$config->getDB()), self::$config->getUser(), self::$config->getPass());
+			self::$sqlres[$name] = new \PDO('mysql:host=' . self::$config->getHost() . ';port=' . self::$config->getPort() . ';dbname=' . (self::$config->getDB() == NULL?$name:self::$config->getDB()), self::$config->getUser(), self::$config->getPass());
 			self::$sqlres[$name]->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 		}
 	}
