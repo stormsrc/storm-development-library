@@ -1,0 +1,18 @@
+{
+    "name": "bagf/storm",
+    "description": "Storm Development Library",
+    "license": "GPL",
+    "authors": [
+        {
+            "name": "bagf",
+            "email": "rory@eishgaming.co.za"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+
+    },
+    "autoload": {
+        "psr-0": {"storm\\": "./"}
+    }
+}
