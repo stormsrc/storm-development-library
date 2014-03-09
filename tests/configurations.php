@@ -3,7 +3,7 @@
  * @author Dylan Vorster <dylan@eezipay.com>
  * @author Rory van Heerden <rory@eishgaming.co.za>
 */
-require_once __DIR__.'/../autoloader.php';
+require_once __DIR__.'/../autoload.php';
 
 echo '<pre>';
 
