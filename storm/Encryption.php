@@ -1,7 +1,8 @@
-<?php namespace eezipay\launchpad;
+<?php namespace storm;
 /**
- * @author Dylan
- */
+ * @author Dylan Vorster <dylan@eezipay.com>
+ * @author Rory van Heerden <rory@eishgaming.co.za>
+*/
 class Encryption{
 	
 	public static function generateKey($length){

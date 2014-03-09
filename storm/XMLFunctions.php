@@ -4,8 +4,6 @@
  * @author Dylan
  */
 class XMLFunctions{
-
-	/* This class validates as to whether there are any null values in the launchpad request */
 	public static function checkForNull($xml,$parent = false){
 		$data = $xml -> children();
 		foreach($data as $d => $value){
@@ -113,17 +111,6 @@ class XMLFunctions{
 					$str .= ">".utf8_encode($v)."</{$temp[0]}>";
 				}
 			}
-		}
-		return $str;
-	}
-
-	public static function arrayToLaunchpadXML($arr) {
-		
-		if (is_array($arr)) {
-
-			$str = "<Code>0</Code>" . self::arrayToXML($arr);
-		} else {
-			$str = "<Code>0</Code>";
 		}
 		return $str;
 	}

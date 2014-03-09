@@ -1,15 +1,8 @@
 <?php namespace storm;
 /**
- @Author: 	Rory van Heerden
- @Version: 	1.0
-
- @Desciption:
-
-	This class handles everything relating to the live TCP sockets
-	that are going to be used throughout the main site and a few external
-	Launchpad functions. This framework provides a means of connecting
-	to external ports on external IP's.							
- */
+ * @author Dylan Vorster <dylan@eezipay.com>
+ * @author Rory van Heerden <rory@eishgaming.co.za>
+*/
 class ESocket
 {
 	protected $handle;
@@ -20,11 +13,11 @@ class ESocket
 			$address = gethostbyname($address);
 		}
 		if ($port < 1024 || $port > 65535) {
-			throw new Exception("Invalid port");
+			throw new \Exception("Invalid port");
 		}
 		$fh = @fsockopen($address, $port, $errorno, $errorstr);
 		if (!$fh) {
-			throw new Exception("Failed to open socket error no {$errorno} [{$errorstr}]");
+			throw new \Exception("Failed to open socket error no {$errorno} [{$errorstr}]");
 		}
 		$this -> handle = $fh;
 	}

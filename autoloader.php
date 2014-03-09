@@ -3,14 +3,12 @@
  * @author Dylan Vorster
  */
 spl_autoload_register(function($className){
-	$exploded = explode('\\', $className);
-	if(count($exploded) !== 2){
-		return false;
-	}
-	if($exploded[0] == 'storm'){
-		require_once __DIR__.'/classes/'.$exploded[1].'.class.php';
-		return true;
-	}
-	return false;
+	$className = str_replace("\\", DIRECTORY_SEPARATOR, $className);
+	$fileName = __DIR__.DIRECTORY_SEPARATOR."{$className}.php";
+        if (!is_file($fileName)) {
+            return false;
+        }
+	require_once $fileName;
+        return true;
 },false);
 ?>
