@@ -29,23 +29,24 @@ class PSQLConfiguration extends Configuration {
 		return self::fetchFirstConfiguration(static::extractClassName(__CLASS__));
 	}
 
-	public function __construct($host = NULL, $port = NULL, $user = NULL, $pass = NULL, $db = NULL, $name = NULL) {
+	public function __construct($host = NULL, $port = NULL, $user = NULL, $pass = NULL, $db = NULL, $name = NULL, $charset = NULL) {
 		//standard invoke
 		if (is_null($port) && is_null($user) && is_null($pass) && is_null($db) && is_null($name)) {
 			parent::__construct($host);
 		} else {
 			parent::__construct();
-			$this->setup($host, $port, $user, $pass, $db, $name);
+			$this->setup($host, $port, $user, $pass, $db, $name, $charset);
 		}
 	}
 
-	public function setup($host, $port, $user, $pass, $db, $name = NULL) {
+	public function setup($host, $port, $user, $pass, $db, $name = NULL, $charset = NULL) {
 		$this->set('user', $user);
 		$this->set('pass', $pass);
 		$this->set('host', $host);
 		$this->set('port', $port);
 		$this->set('db', $db);
 		$this->set('name', (is_null($name) ? $db : $name));
+		$this->set('charset', $charset);
 	}
 
 	public function getUser() {
@@ -70,6 +71,10 @@ class PSQLConfiguration extends Configuration {
 
 	public function getName() {
 		return $this->getOptional('name', $this->getDB());
+	}
+        
+	public function getCharset() {
+		return $this->getOptional('charset', 'utf8');
 	}
 
 }
