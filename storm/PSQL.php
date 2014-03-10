@@ -1,6 +1,4 @@
-<?php
-
-namespace storm;
+<?php namespace storm;
 
 /**
  * @author Dylan Vorster <dylan@eezipay.com>
@@ -29,7 +27,7 @@ class PSQL {
 	}
 
 	public static function readConfig($name = NULL) {
-		if (self::$debug){
+		if (self::$debug) {
 			echo "=>" . __METHOD__ . "\n";
 		}
 		$name = self::fetchDefault($name);
@@ -48,7 +46,7 @@ class PSQL {
 	}
 
 	public static function setConnectionDetails(PSQLConfiguration $config) {
-		if (self::$debug){
+		if (self::$debug) {
 			echo "=>" . __METHOD__ . "\n";
 		}
 		self::$config = $config;
@@ -58,7 +56,7 @@ class PSQL {
 	  Internal dont use it (most cases)
 	 */
 	public static function connect($name = NULL) {
-		if (self::$debug){
+		if (self::$debug) {
 			echo "=>" . __METHOD__ . "\n";
 		}
 		$name = self::fetchDefault($name);
@@ -69,10 +67,7 @@ class PSQL {
 		if (!isset(static::$sqlres[$name])) {
 			self::readConfig($name);
 
-			self::$sqlres[$name] = new \PDO('mysql:host=' . self::$config->getHost() . ';port=' . self::$config->getPort() . ';dbname=' . (self::$config->getDB() == NULL?$name:self::$config->getDB()),
-                                self::$config->getUser(),
-                                self::$config->getPass(),
-                                array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES ".self::$config->getCharset()));
+			self::$sqlres[$name] = new \PDO('mysql:host=' . self::$config->getHost() . ';port=' . self::$config->getPort() . ';dbname=' . (self::$config->getDB() == NULL ? $name : self::$config->getDB()), self::$config->getUser(), self::$config->getPass(), array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES " . self::$config->getCharset()));
 			self::$sqlres[$name]->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 		}
 	}
@@ -84,7 +79,7 @@ class PSQL {
 	 * @return \PDOStatement
 	 */
 	public static function prepare($sql, $name = null) {
-		if (self::$debug){
+		if (self::$debug) {
 			echo "=>" . __METHOD__ . "\n";
 		}
 		$name = self::fetchDefault($name);
@@ -112,48 +107,47 @@ class PSQL {
 		static::$queries[$name][$sql] = $stmt;
 		return $stmt;
 	}
-        
-        /**
-         * 
-         * @param \PDOStatement $stmt
-         * @param type $vars
-         */
-        protected static function bindVars(\PDOStatement &$stmt, $vars) {
-            if (!is_array($vars)) {
-                throw new \Exception("vars needs to be an array in PSQL");
-            }
-            foreach ($vars as $key => &$var) {
-		if (is_string($key)) {
-                    if (is_numeric($var)) {
-                        $type = \PDO::PARAM_INT;
-                    } else if (is_bool($var)) {
-                        $type = \PDO::PARAM_BOOL;
-                    } else if (is_null($var)) {
-                        $type = \PDO::PARAM_NULL;
-                        $var = "".$var;
-                    } else {
-                        $type = \PDO::PARAM_STR;
-                    }
-                    $stmt->bindParam($key, $var, $type);
-		} else {
-                    $stmt->bindValue($key + 1, $var);
-		}
-            }
-        }
 
-        /**
+	/**
+	 * 
+	 * @param \PDOStatement $stmt
+	 * @param type $vars
+	 */
+	protected static function bindVars(\PDOStatement &$stmt, $vars) {
+		if (!is_array($vars)) {
+			throw new \Exception("vars needs to be an array in PSQL");
+		}
+		foreach ($vars as $key => &$var) {
+			if (is_string($key)) {
+				if (is_numeric($var)) {
+					$type = \PDO::PARAM_INT;
+				} else if (is_bool($var)) {
+					$type = \PDO::PARAM_BOOL;
+				} else if (is_null($var)) {
+					$type = \PDO::PARAM_NULL;
+				} else {
+					$type = \PDO::PARAM_STR;
+				}
+				$stmt->bindParam($key, $var, $type);
+			} else {
+				$stmt->bindValue($key + 1, $var);
+			}
+		}
+	}
+
+	/**
 	 * Use this function to insert data into a table
 	 * @param string $sql - the SQL Query with '?' for placeholders
 	 * @param string $name - the database config name
 	 * @param array $vars - the variables in an array format
 	 */
 	public static function insert($sql, $name, $vars = array()) {
-		if (self::$debug){
+		if (self::$debug) {
 			echo "=>" . __METHOD__ . "\n";
 		}
 		$stmt = static::prepare($sql, $name, $vars);
 		static::bindVars($stmt, $vars);
-                
+
 		$stmt->execute();
 		return static::$sqlres[$name]->lastInsertId();
 	}
@@ -166,12 +160,12 @@ class PSQL {
 	 * @return \PDOStatement "the results"
 	 */
 	public static function query($sql, $name, $vars = array()) {
-		if (self::$debug){
+		if (self::$debug) {
 			echo "=>" . __METHOD__ . "\n";
 		}
 		$stmt = static::prepare($sql, $name, $vars);
 		static::bindVars($stmt, $vars);
-                
+
 		$stmt->execute();
 		return $stmt;
 	}
@@ -181,5 +175,4 @@ class PSQL {
 	}
 
 }
-
 ?>

@@ -62,7 +62,7 @@ class PSQLConfiguration extends Configuration {
 	}
 
 	public function getPort() {
-		return $this->get('port');
+		return $this->getOptional('port',3306);
 	}
 
 	public function getDB() {
