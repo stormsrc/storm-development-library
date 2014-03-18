@@ -66,8 +66,20 @@ class PSQL {
 
 		if (!isset(static::$sqlres[$name])) {
 			self::readConfig($name);
-
-			self::$sqlres[$name] = new \PDO('mysql:host=' . self::$config->getHost() . ';port=' . self::$config->getPort() . ';dbname=' . (self::$config->getDB() == NULL ? $name : self::$config->getDB()), self::$config->getUser(), self::$config->getPass(), array(\PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES " . self::$config->getCharset()));
+			$data = 'mysql:host=' . self::$config->getHost() . ';';
+			$options = [];
+			
+			//if we have a port
+			if(self::$config->getPort() !== NULL){
+				$data.='port=' . self::$config->getPort() . ';';
+			}
+			
+			//if we have a charset
+			if(self::$config->getCharset() !== NULL){
+				$options[\PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES " . self::$config->getCharset();
+			}
+			
+			self::$sqlres[$name] = new \PDO($data.'dbname=' . (self::$config->getDB() == NULL ? $name : self::$config->getDB()), self::$config->getUser(), self::$config->getPass(),$options);
 			self::$sqlres[$name]->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 		}
 	}
