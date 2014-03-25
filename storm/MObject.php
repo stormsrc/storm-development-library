@@ -42,6 +42,10 @@ abstract class MObject{
 	}
 	
 	public final function save(){
+		if(self::$memcache === NULL){
+			self::$memcache = new \Memcache();
+			self::$memcache->connect('localhost', 11211);
+		}
 		self::$memcache->set(self::getStoreKey($this->id), $this, false, 60*10);
 	}
 	
@@ -49,7 +53,8 @@ abstract class MObject{
 		return get_called_class().'__'.$key;
 	}
 	
-	public function getId() {
+	public function getID() {
 		return $this->id;
 	}
+
 }
