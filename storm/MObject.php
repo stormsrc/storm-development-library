@@ -1,6 +1,7 @@
 <?php namespace storm;
 /**
  * Extend this class to make a cachable object
+ * 
  * @author Dylan Vorster
  */
 abstract class MObject{
@@ -13,44 +14,67 @@ abstract class MObject{
 		$this->id = $id;
 	}
 	
-	/**
-	 * 
-	 * @param type $id
-	 * @return \static
-	 */
-	public static function get($id,$force = false){
-		if(self::$debug){
-			$force = true;
-		}
+	private static function checkResource(){
 		//make a memcache object if we dont have one
 		if(self::$memcache === NULL){
 			self::$memcache = new \Memcache();
 			self::$memcache->connect('localhost', 11211);
 		}
+	}
+	
+	/**
+	 * Checks whether the item exists or not
+	 * @param type $id
+	 * @return type
+	 */
+	public static function isStored($id){
+		self::checkResource();
+		return self::$memcache->get(self::getStoreKey(get_called_class(),$id)) !== false;
+	}
+	
+	/**
+	 * 
+	 * @param type $id
+	 * @return \static
+	 */
+	public static function &get($id,$force = false){
+		if(self::$debug){
+			$force = true;
+		}
+		//make a memcache object if we dont have one
+		self::checkResource();
 		if(!$force){
-			$get = self::$memcache->get(self::getStoreKey($id));
+			$get = self::$memcache->get(self::getStoreKey(get_called_class(),$id));
 		}
 		
 		//could not get the object
 		if($force || $get === false){
 			$get = new static($id);
-			
-			//store the item for an hour
-			self::$memcache->set(self::getStoreKey($id), $get, false, 60*10);
+			$get->save();
 		}
 		return $get;
 	}
 	
+	/**
+	 * Save the object in memory
+	 */
 	public final function save(){
-		if(self::$memcache === NULL){
-			self::$memcache = new \Memcache();
-			self::$memcache->connect('localhost', 11211);
+		
+		//remove all parents if any
+		self::checkResource();
+		
+		//clear the old ones
+		$parents = class_parents($this);
+		foreach ($parents as $value) {
+			self::$memcache->delete(self::getStoreKey($value, $this->id));
 		}
-		self::$memcache->set(self::getStoreKey($this->id), $this, false, 60*10);
+		
+		//create the new ones
+		self::$memcache->set(self::getStoreKey(get_called_class(),$this->id), $this, false, 60*10);
 	}
 	
-	public static function getStoreKey($key){
-		return get_called_class().'__'.$key;
+	public static function getStoreKey($classname,$key){
+		return $classname.'__'.$key;
 	}
 	
 	public function getID() {
