@@ -58,7 +58,7 @@ abstract class MObject{
 	/**
 	 * Save the object in memory
 	 */
-	public final function save(){
+	public function save(){
 		
 		//remove all parents if any
 		self::checkResource();
