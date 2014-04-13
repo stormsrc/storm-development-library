@@ -7,17 +7,59 @@
 class PSQL {
 
 	// configuration
-	/**
-	 *
-	 * @var \storm\PSQLConfiguration
-	 */
 	private static $config = NULL;
 	private static $debug = false;
+	
 	//instances
 	public static $sqlres = NULL;
 	public static $result = NULL;
 	public static $queries = NULL;
 	public static $defaultDatabase = NULL;
+	
+	const TIMESTAMP = 'Y-m-d H:i:s';
+	const DATE = 'Y-m-d';
+	const TIME = 'H:i:s';
+	
+	/**
+	 * Gets a MySQL Timestamp from a \DateTime supplied
+	 * @param \DateTime $dateTime
+	 * @return NULL|String
+	 */
+	public static function MySQLTimestamp(\DateTime $dateTime,$type = self::TIMESTAMP){
+		if($dateTime == NULL){
+			return NULL;
+		}
+		return $dateTime->format($type);
+	}
+	
+	public static function MySQLDate(\DateTime $dateTime){
+		return self::MySQLTimestamp($dateTime, self::DATE);
+	}
+	
+	/**
+	 * Creates a PHP DateTime object from the TIMESTAMP format in MySQL
+	 * 
+	 * @param String|NULL|\DateTime $dateTime
+	 * @return \DateTime
+	 */
+	public static function PHPTimestamp($dateTime,$type = self::TIMESTAMP){
+		if(is_object($dateTime) && $dateTime instanceof \DateTime){
+			return $dateTime;
+		}
+		if($dateTime === NULL){
+			return NULL;
+		}
+		return \DateTime::createFromFormat($type, $dateTime);
+	}
+	
+	/**
+	 * Simplified version of @see PHPTimestamp
+	 * @param type $dateTime
+	 * @return type
+	 */
+	public static function PHPDate($dateTime){
+		return self::PHPTimestamp($dateTime, self::DATE);
+	}
 
 	/**
 	 * Configuration methods

@@ -23,6 +23,16 @@ abstract class MObject{
 	}
 	
 	/**
+	 * Gets the memcache object
+	 * @return type
+	 */
+	public static function getMemcache() {
+		self::checkResource();
+		return self::$memcache;
+	}
+
+		
+	/**
 	 * Checks whether the item exists or not
 	 * @param type $id
 	 * @return type
